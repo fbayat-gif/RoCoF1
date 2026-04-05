@@ -3,20 +3,19 @@
 %% Written By Dr. Farshad Merrikh-Bayat
 clear all
 
-lam = logspace(-6,0,10);    % lambda_min = 10^-6, lambda_max = 10^0, 10 lambda samples
-                            % The simulations in the paper were performed using 200 lambda samples.
+lam = logspace(-6,0,20);    % lambda_min = 10^-6, lambda_max = 10^0, 20 lambda samples
                             % The search for lambda_opt will be done among the values in "lam".  
 
 T = 0.01;                   % Sampling period
 
 tspan = [0:T:20]';          % tspan contains the entire time samples 
                             % (the vector containing the time samples of the sliding
-                            % window will be denoted as t in the following)
+                            % window will be denoted as "t" in the following)
 
 for j=1:length(tspan)       % Defining the f(t) (noise-free frequency) used in Case Study 1: Generator Trip Disturbance
     if tspan(j)<5
         f(j,1) = 50;
-        derivExact(j,1) = 0;% The vector containing the samples of exact RoCoF
+        derivExact(j,1) = 0;% The vector containing the samples of true (exact) RoCoF
     elseif tspan(j)>=5 && tspan(j)<6
         f(j,1) = 50-0.12*(1-exp(-3*(tspan(j)-5))); 
         derivExact(j,1) = -0.36*exp(-3*(tspan(j)-5));
@@ -33,11 +32,17 @@ fmeas = f + eta;                    % Full-length noisy measured frequency
 n = 200;                            % Sliding window length (n=200 is used in the simulations of paper)         
 
 %% trapezoidal integration operator with SBP-compatible boundary correction
+% A = tril(ones(n+1));
+% A(:,1) = 0.5;
+% A = A-0.5*diag(ones(n+1,1));
+% A(1,1) = -0.5;
+% A(1,2) = 0.5;
+% A = T*A;
+
+%% trapeziodal integration operator (default)
 A = tril(ones(n+1));
-A(:,1) = 0.5;
 A = A-0.5*diag(ones(n+1,1));
-A(1,1) = -0.5;
-A(1,2) = 0.5;
+A(:,1) = 0.5;
 A = T*A;
 
 %% Backward-difference differentiation operator
@@ -57,8 +62,8 @@ for j=1:length(tspan)-n
         P = pinv(lambda*D'*D+A'*A);
         y = D*P*A.'*(z_hat-z_hat(1));
                 
-        q(k) = -2 * lambda * (y' * D * P * D' * D * P * A' * (z_hat-z_hat(1))) / (y'*y);
-        
+        q(k) = -2 * lambda * (y' * D * P * D' * y) / (y'*y);
+
         vopt = pinv(lambda * D' * D + A' * A) * A' * (z_hat-z_hat(1));
     end
     
@@ -66,7 +71,7 @@ for j=1:length(tspan)-n
     optLambda(j) = lam(ind);
     
     vv = pinv(optLambda(j) * D' * D + A' * A) * A' * (z_hat-z_hat(1));
-    derivEst(j+n) = vv(end);    % The last entry of vv is equal to the derivative at the current moment of time
+    derivEst(j+n) = vv(end);    % The last entry of "vv" is equal to the derivative at the current moment of time
     
     fprintf('Iter = %d, Optimum Lambda = %e, Exact RoCoF = %e, Est. RoCoF = %e \n',j,optLambda(j), derivExact(j+n,1), derivEst(j+n))
                  
