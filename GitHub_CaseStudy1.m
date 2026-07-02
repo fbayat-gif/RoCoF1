@@ -64,10 +64,10 @@ for j=1:length(tspan)-n
                 
         q(k) = -2 * lambda * (y' * D * P * D' * y) / (y'*y);
 
-        vopt = pinv(lambda * D' * D + A' * A) * A' * (z_hat-z_hat(1));
+        vopt = P * A' * (z_hat-z_hat(1));
     end
     
-    ind = find(q==max(q),1);
+    [~,ind] = min(abs(q));
     optLambda(j) = lam(ind);
     
     vv = pinv(optLambda(j) * D' * D + A' * A) * A' * (z_hat-z_hat(1));
