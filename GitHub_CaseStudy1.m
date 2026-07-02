@@ -73,7 +73,7 @@ for j=1:length(tspan)-n
     vv = pinv(optLambda(j) * D' * D + A' * A) * A' * (z_hat-z_hat(1));
     derivEst(j+n) = vv(end);    % The last entry of "vv" is equal to the derivative at the current moment of time
     
-    fprintf('Iter = %d, Optimum Lambda = %e, Exact RoCoF = %e, Est. RoCoF = %e \n',j,optLambda(j), derivExact(j+n,1), derivEst(j+n))
+    fprintf('Iter = %d of %d, Optimum Lambda = %e, Exact RoCoF = %e, Est. RoCoF = %e \n',j,length(tspan)-n,optLambda(j), derivExact(j+n,1), derivEst(j+n))
                  
 end 
 
